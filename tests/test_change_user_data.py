@@ -1,8 +1,10 @@
+import allure
 from utils.api_client import APIClient
 from faker import Faker
 
 fake = Faker()
 
+@allure.suite("Изменение данных пользователя")
 class TestChangeUserData:
 
     def setup_method(self):
@@ -19,13 +21,12 @@ class TestChangeUserData:
     def teardown_method(self):
         self.client.delete_user(self.token)
 
+    @allure.title("Изменение данных пользователя с авторизацией")
     def test_change_user_data_with_auth(self):
         updated = {"name": "UpdatedName"}
         response = self.client.update_user(self.token, updated)
         assert response.status_code == 200
         assert response.json()["user"]["name"] == "UpdatedName"
 
-    def test_change_user_data_without_auth(self):
-        updated = {"name": "Hacker"}
-        response = self.client.update_user(None, updated)
-        assert response.status_code == 401
+    @allure.title("Попытка изменить данные без авторизации")
+    def test_change_user_data_without_auth_
