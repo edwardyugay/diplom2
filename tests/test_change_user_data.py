@@ -1,17 +1,31 @@
-def test_change_user_data_with_auth():
-    user = {
-        "email": fake.email(),
-        "password": "123456",
-        "name": fake.first_name()
-    }
-    reg = client.create_user(user)
-    token = reg.json()["accessToken"].split()[-1]
-    headers = {"Authorization": f"Bearer {token}"}
-    response = client.change_user(headers, {"name": "UpdatedName"})
-    assert response.status_code == 200
-    assert response.json()["user"]["name"] == "UpdatedName"
-    client.delete_user(token)
+from utils.api_client import APIClient
+from faker import Faker
 
-def test_change_user_data_without_auth():
-    response = client.change_user({}, {"name": "Hacker"})
-    assert response.status_code == 401
+fake = Faker()
+
+class TestChangeUserData:
+
+    def setup_method(self):
+        self.client = APIClient()
+        self.user = {
+            "email": fake.email(),
+            "password": "123456",
+            "name": fake.first_name()
+        }
+        response = self.client.create_user(self.user)
+        assert response.status_code == 200
+        self.token = response.json()["accessToken"].split()[-1]
+
+    def teardown_method(self):
+        self.client.delete_user(self.token)
+
+    def test_change_user_data_with_auth(self):
+        updated = {"name": "UpdatedName"}
+        response = self.client.update_user(self.token, updated)
+        assert response.status_code == 200
+        assert response.json()["user"]["name"] == "UpdatedName"
+
+    def test_change_user_data_without_auth(self):
+        updated = {"name": "Hacker"}
+        response = self.client.update_user(None, updated)
+        assert response.status_code == 401
